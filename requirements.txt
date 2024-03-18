@@ -71,7 +71,7 @@ llama-parse==0.3.8
 llamaindex-py-client==0.1.13
 lxml==5.1.0
 markdown-it-py==3.0.0
-MarkupSafe==2.1.5
+MarkupSafe
 marshmallow==3.20.2
 matplotlib==3.7.2
 mdurl==0.1.2
