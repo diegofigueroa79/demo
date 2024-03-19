@@ -1,7 +1,7 @@
 import streamlit as st
 from streamlit_d3graph import d3graph, vec2adjmat
 
-from langchain_community.document_loaders import UnstructuredFileIOLoader
+from langchain_community.document_loaders import PyPDFLoader
 
 from docparser import split_documents
 from prompts import construct_prompt
@@ -49,7 +49,11 @@ def main():
     col1, col2 = st.columns([0.4, 0.6])
 
     with col1:
-        uploaded_file = st.file_uploader("Choose a file")
+        file_link = st.text_input(
+            label="Document Link", 
+            key="file_link", 
+            value="https://raw.githubusercontent.com/skarlekar/graph-visualizer/1927533f5b79fd1fd529944d77462553e7fe9bde/content/Appraisal-Report.pdf"
+        )
 
         ontology = st.text_area(
             label="Ontology TTL",
@@ -59,8 +63,9 @@ def main():
 
     with col2:
         if st.button("Generate Graph"):
-            if uploaded_file and ontology:
-                loader = UnstructuredFileIOLoader(uploaded_file)
+            if file_link and ontology:
+                loader = PyPDFLoader(file_link)
+                #pages = loader.load_and_split()
                 doc = loader.load()
                 texts = split_documents(chunk_size=1000, document=doc)
 
