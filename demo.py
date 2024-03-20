@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_d3graph import d3graph, vec2adjmat
 
+#from langchain_community.document_loaders import UnstructuredFileIOLoader
 from langchain_community.document_loaders import PyPDFLoader
 
 from docparser import split_documents
@@ -10,6 +11,10 @@ from graph_merger import join_graphs
 
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
+
+import streamlit_authenticator as stauth
+import yaml
+from yaml.loader import SafeLoader
 
 BGCOLOR="rgb(38, 39, 48)"
 
@@ -41,14 +46,36 @@ def connect_to_bedrock():
     llm = ChatOpenAI(model="gpt-4", temperature=0)
     return llm
 
+def authenticate():
+    with open('./config.yaml') as file:
+        config = yaml.load(file, Loader=SafeLoader)
+    authenticator = stauth.Authenticate(
+        config['credentials'],
+        config['cookie']['name'],
+        config['cookie']['key'],
+        config['cookie']['expiry_days'],
+        config['preauthorized']
+    )
+    name, authentication_status, username = authenticator.login()
+    if st.session_state["authentication_status"]:
+        authenticator.logout('Logout', 'main', key='unique_key')
+        with open('./config.yaml', 'w') as file:
+            yaml.dump(config, file, default_flow_style=False)
+        st.write(f'Welcome *{st.session_state["name"]}*')
+        main()
+    elif st.session_state["authentication_status"] is False:
+        st.error('Username/password is incorrect')
+    elif st.session_state["authentication_status"] is None:
+        st.warning('Please enter your username and password')
+    return name, authentication_status, username
+
 def main():
     llm = connect_to_bedrock()
-
-    st.set_page_config(layout="wide")
 
     col1, col2 = st.columns([0.4, 0.6])
 
     with col1:
+        #uploaded_file = st.file_uploader("Choose a file")
         file_link = st.text_input(
             label="Document Link", 
             key="file_link", 
@@ -90,4 +117,5 @@ def main():
                 st.error('Document or ontology is missing', icon="🚨")
 
 if __name__ == '__main__':
-    main()
+    st.set_page_config(layout="wide")
+    authenticate()
