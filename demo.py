@@ -9,8 +9,8 @@ from prompts import construct_prompt
 from ontology import get_ontology
 from graph_merger import join_graphs
 
-from langchain_openai import ChatOpenAI
-from dotenv import load_dotenv
+from langchain_community.chat_models import BedrockChat
+import boto3
 
 import streamlit_authenticator as stauth
 import yaml
@@ -43,7 +43,13 @@ def generate_graph():
     d3.show(show_slider=False)
 
 def connect_to_bedrock():
-    llm = ChatOpenAI(model="gpt-4", temperature=0)
+    boto_session = boto3.Session()
+    aws_region = boto_session.region_name
+    bedrock_runtime = boto_session.client("bedrock-runtime", region_name=aws_region)
+    
+    modelId = "anthropic.claude-3-sonnet-20240229-v1:0"
+    
+    llm = BedrockChat(model_id=modelId, client=bedrock_runtime, model_kwargs={"temperature": 0})
     return llm
 
 def authenticate():
